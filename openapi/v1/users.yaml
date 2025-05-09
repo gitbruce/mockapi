@@ -32,6 +32,9 @@ paths:
                   birthdate:
                     type: string
                     format: date
+                  jobTitle:
+                    type: string
+                    x-faker: person.jobTitle
                   gender:
                     type: string
                     enum: [男, 女]

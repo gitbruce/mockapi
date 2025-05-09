@@ -18,6 +18,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+package-lock.json
 
 # Dependency directories
 # 项目依赖通常通过包管理器（npm, yarn, pnpm）安装，不应直接提交
