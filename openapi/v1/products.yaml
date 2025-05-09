@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI LLM Mock API
+  version: 1.0.0
+paths:
+  /products/{id}:
+    get:
+      operationId: getProductById
+      summary: 获取商品信息
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 商品
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                    x-faker: commerce.product
+                  description:
+                    type: string
+                    x-llm: true
+                    x-llm-prompt: "请生成商品{{name}}的一段吸引人的描述"
+                  price:
+                    type: number

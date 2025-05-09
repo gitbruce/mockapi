@@ -46,3 +46,24 @@ paths:
                     type: string
                     x-llm: true
                     x-llm-prompt: "请根据用户 {{name}} 的基本情况，生成一段真实自然的中文个人简介（50字以内），只返回正文。"
+                  products:
+                    type: array
+                    description: 用户拥有的商品
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                          x-faker: commerce.productName
+                        description:
+                          type: string
+                          x-llm: true
+                          x-llm-prompt: "请为产品 {{name}} 编写一句简洁的中文描述，不要解释或示例。"
+                        price:
+                          type: number
+                          format: float
+                        category:
+                          type: string
+                          x-faker: commerce.department

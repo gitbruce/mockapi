@@ -1,9 +1,9 @@
 const express = require('express');
 const OpenAPIBackend = require('openapi-backend').default;
-const YAML = require('yamljs');
-const chokidar = require('chokidar');
+const { loadAllOpenAPIDefinitions } = require('./loader'); // 新增，支持多 YAML 合并
 const { generateMock } = require('./llmMockGenerator');
 const path = require('path');
+const chokidar = require('chokidar');
 const swaggerUi = require('swagger-ui-express');
 const bodyParser = require('body-parser');
 
@@ -16,7 +16,8 @@ let apiDoc = null;
 let api = null;
 
 function createApi() {
-    apiDoc = YAML.load(path.join(__dirname, './openapi/v1/api.yaml'));
+    const yamlDir = path.join(__dirname, './openapi/v1');
+    apiDoc = loadAllOpenAPIDefinitions(yamlDir);
 
     const newApi = new OpenAPIBackend({
         definition: apiDoc,
@@ -25,28 +26,21 @@ function createApi() {
     });
     newApi.init();
 
-    // 关键：一个统一的 handler
     async function universalHandler(c, req, res) {
-        const responseSchema = c.operation?.responses?.['200']?.content?.['application/json']?.schema;
-        if (responseSchema) {
-            const mockData = await generateMock(responseSchema, c);
-            res.status(200).json(mockData);
-        } else {
-            res.status(501).json({ error: 'No 200 response schema found' });
+        const schema = c.operation?.responses?.['200']?.content?.['application/json']?.schema;
+        const mockData = await generateMock(schema, c);
+        res.status(200).json(mockData);
+    }
+
+    // 自动注册所有 operationId
+    for (const methods of Object.values(apiDoc.paths)) {
+        for (const op of Object.values(methods)) {
+            if (op.operationId) {
+                newApi.registerHandler(op.operationId, universalHandler);
+            }
         }
     }
 
-    // 动态注册所有 operationId
-    const operations = Object.entries(newApi.definition.paths)
-        .flatMap(([pathName, methods]) =>
-            Object.entries(methods).map(([method, op]) => op?.operationId).filter(Boolean)
-        );
-
-    operations.forEach(opId => {
-        newApi.registerHandler(opId, universalHandler);
-    });
-
-    // 如果有未注册的，fallback
     newApi.registerHandler('notFound', (c, req, res) => {
         res.status(404).json({ error: 'Not Found' });
     });
@@ -59,24 +53,25 @@ createApi();
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(apiDoc));
 
 app.use(async (req, res, next) => {
-    const request = {
-        method: req.method,
-        path: req.path,
-        body: req.body,
-        query: req.query,
-        headers: req.headers,
-    };
     try {
-        const response = await api.handleRequest(request, req, res);
-        if (!response) return next();
+        const request = {
+            method: req.method,
+            path: req.path,
+            body: req.body,
+            query: req.query,
+            headers: req.headers
+        };
+        const result = await api.handleRequest(request, req, res);
+        if (!result) return next();
     } catch (err) {
         console.error('处理请求时出错:', err);
         res.status(500).json({ error: 'Internal Server Error', detail: err.message });
     }
 });
 
-// 热更新 openapi.yaml
-chokidar.watch(path.join(__dirname, './openapi/v1/api.yaml')).on('change', () => {
+// 热更新所有 yaml 文档
+const watcher = chokidar.watch(path.join(__dirname, './openapi/v1'));
+watcher.on('change', () => {
     console.log('♻️ 检测到 OpenAPI 文档变更，重新加载...');
     try {
         createApi();
