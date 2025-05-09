@@ -1,0 +1,47 @@
+openapi: 3.0.0
+info:
+  title: Demo API
+  version: 1.0.0
+paths:
+  /users/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  bio:
+                    type: string
+  /products/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  description:
+                    type: string

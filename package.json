@@ -1,0 +1,18 @@
+{
+    "name": "openapi-llm-mock",
+    "version": "1.0.0",
+    "dependencies": {
+      "express": "^5.1.0",
+      "openapi-backend": "^5.12.0",
+      "@langchain/community": "^0.3.42",
+      "langchain": "^0.3.24",
+      "yaml": "^2.7.1",
+      "body-parser": "^2.2.0",
+      "chokidar":"^4.0.3",
+      "swagger-ui-express":"^5.0.1",
+      "yamljs":"^0.3.0",
+      "@faker-js/faker":"^9.7.0",
+      "randexp":"^0.5.3"
+    }
+  }
+  

@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI LLM Mock API
+  version: 1.0.0
+paths:
+  /users/{id}:
+    get:
+      operationId: getUserById
+      summary: 获取用户信息
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 用户信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                    x-faker: person.fullName
+                  email:
+                    type: string
+                    format: email
+                  birthdate:
+                    type: string
+                    format: date
+                  gender:
+                    type: string
+                    enum: [男, 女]
+                  phone:
+                    type: string
+                    pattern: "^1[3-9][0-9]{9}$"
+                  address:
+                    type: string
+                    x-llm: true
+                    x-llm-prompt: "为用户 {{name}} 生成一个详细的中文地址，不要解释或示例，只返回内容。"
+                  bio:
+                    type: string
+                    x-llm: true
+                    x-llm-prompt: "请根据用户 {{name}} 的基本情况，生成一段真实自然的中文个人简介（50字以内），只返回正文。"
